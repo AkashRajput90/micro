@@ -27,35 +27,26 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Setup Node.js and Build/Push Docker Image
+      - name: Setup Node.js and Build/Push Docker Image for React
         if: steps.detect_changes.outputs.changed_directory == 'react'
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
         run: |
-          cd mainwebsite
+          cd react
           npm install
           docker build -t img90registry.azurecr.io/reactmain .
-          docker push your-acr-name.azurecr.io/react-app:latest
+          docker push img90registry.azurecr.io/reactmain
 
-      - name: Setup Node.js and Build/Push Docker Image
+      - name: Setup Node.js and Build/Push Docker Image for Express
         if: steps.detect_changes.outputs.changed_directory == 'express'
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
         run: |
-          cd api-gateway
+          cd express
           npm install
           docker build -t img90registry.azurecr.io/api .
-          docker push your-acr-name.azurecr.io/express-app:latest
+          docker push img90registry.azurecr.io/api
 
-      - name: Setup Python and Build/Push Docker Image
+      - name: Setup Python and Build/Push Docker Image for Flask
         if: steps.detect_changes.outputs.changed_directory == 'flask'
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
         run: |
-          cd appver3
+          cd flask
           pip install -r requirements.txt
           docker build -t img90registry.azurecr.io/flaskmain .
-          docker push your-acr-name.azurecr.io/flask-app:latest
+          docker push img90registry.azurecr.io/flaskmain
