@@ -1,0 +1,61 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_push_images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Determine Changed Directory
+        id: detect_changes
+        run: |
+          CHANGED_DIRECTORY=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(react|express|flask)' || true)
+          echo "Changed directory: $CHANGED_DIRECTORY"
+          echo "::set-output name=changed_directory::$CHANGED_DIRECTORY"
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: your-acr-name.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Setup Node.js and Build/Push Docker Image
+        if: steps.detect_changes.outputs.changed_directory == 'react'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+        run: |
+          cd mainwebsite
+          npm install
+          docker build -t img90registry.azurecr.io/reactmain .
+          docker push your-acr-name.azurecr.io/react-app:latest
+
+      - name: Setup Node.js and Build/Push Docker Image
+        if: steps.detect_changes.outputs.changed_directory == 'express'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+        run: |
+          cd api-gateway
+          npm install
+          docker build -t img90registry.azurecr.io/api .
+          docker push your-acr-name.azurecr.io/express-app:latest
+
+      - name: Setup Python and Build/Push Docker Image
+        if: steps.detect_changes.outputs.changed_directory == 'flask'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+        run: |
+          cd appver3
+          pip install -r requirements.txt
+          docker build -t img90registry.azurecr.io/flaskmain .
+          docker push your-acr-name.azurecr.io/flask-app:latest
