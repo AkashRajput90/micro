@@ -7,7 +7,7 @@ from pymongo import MongoClient
 app = Flask(__name__, static_url_path='/static')
 
 class Config:
-    MONGO_URI = "mongodb+srv://manhasakash990:Thakur123@tasks.sdxilnc.mongodb.net/?retryWrites=true&w=majority"
+    
     CACHE_TYPE = 'simple'
     CACHE_TIMEOUT = 60
 
