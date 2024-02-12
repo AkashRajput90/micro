@@ -1,0 +1,17 @@
+# Use an official Node runtime as a parent image
+FROM node:14
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install any needed packages
+RUN npm install
+
+# Bundle app source
+COPY . .
+
+# Specify the command to run when the container starts
+CMD ["npm", "start"]
