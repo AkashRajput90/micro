@@ -1,15 +1,19 @@
+import os
 from flask import Flask, render_template, redirect, request, url_for
 from flask_pymongo import PyMongo
 from flask_caching import Cache
 from models import Task
 from pymongo import MongoClient
+from dotenv import load_dotenv
 
 app = Flask(__name__, static_url_path='/static')
 
+load_dotenv()
 class Config:
-    MONGO_URI = "mongodb+srv://manhasakash990:Thakur123@tasks.sdxilnc.mongodb.net/?retryWrites=true&w=majority"
-    CACHE_TYPE = 'simple'
-    CACHE_TIMEOUT = 60
+# In your Config class
+    MONGO_URI = os.getenv('MONGO_URI')
+    MONGO_CONNECT_TIMEOUT_MS = 20000  # Adjust this value if needed
+
 
 # Configure Flask app
 app.config.from_object(Config)
@@ -19,11 +23,12 @@ mongo = PyMongo(app)
 cache = Cache(app)
 
 try:
-    client = MongoClient(Config.MONGO_URI)
+    client = MongoClient(Config.MONGO_URI, connectTimeoutMS=Config.MONGO_CONNECT_TIMEOUT_MS)
     client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
-    print(e)
+    print(f"Error connecting to MongoDB: {e}")
+
 
 
 @app.route('/')
