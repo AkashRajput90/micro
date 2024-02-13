@@ -1,0 +1,52 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_push_images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Determine Changed Directory
+        id: detect_changes
+        run: |
+          CHANGED_DIRECTORY=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(react|express|flask)' || true)
+          echo "Changed directory: $CHANGED_DIRECTORY"
+          echo "::set-output name=changed_directory::$CHANGED_DIRECTORY"
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: your-acr-name.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Setup Node.js and Build/Push Docker Image for React
+        if: steps.detect_changes.outputs.changed_directory == 'react'
+        run: |
+          cd react
+          npm install
+          docker build -t img90registry.azurecr.io/reactmain .
+          docker push img90registry.azurecr.io/reactmain
+
+      - name: Setup Node.js and Build/Push Docker Image for Express
+        if: steps.detect_changes.outputs.changed_directory == 'express'
+        run: |
+          cd express
+          npm install
+          docker build -t img90registry.azurecr.io/api .
+          docker push img90registry.azurecr.io/api
+
+      - name: Setup Python and Build/Push Docker Image for Flask
+        if: steps.detect_changes.outputs.changed_directory == 'flask'
+        run: |
+          cd flask
+          pip install -r requirements.txt
+          docker build -t img90registry.azurecr.io/flaskmain .
+          docker push img90registry.azurecr.io/flaskmain
